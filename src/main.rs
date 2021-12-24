@@ -1,11 +1,20 @@
+use time::OffsetDateTime;
+#[derive(Debug)]
+struct Transaction {
+    sender: String,
+    recipient: String,
+    amount: u8,
+}
+
 #[derive(Debug)]
 struct Block {
     index: u8,
-    timestamp: u8,
+    timestamp: OffsetDateTime,
+    transactions: Vec<Transaction>,
 }
 #[derive(Debug)]
 struct BlockChain {
-    chain: Vec<Block>
+    chain: Vec<Block>,
 }
 
 impl BlockChain {
@@ -13,15 +22,13 @@ impl BlockChain {
         let mut chain = Vec::new();
         chain.push(Block {
             index: 1,
-            timestamp: 2,
+            timestamp: OffsetDateTime::now_utc(),
+            transactions: Vec::new(),
         });
-        BlockChain {
-            chain
-        }
-        
+        BlockChain { chain }
     }
 
-   
+    fn new_block(self) {}
 }
 
 fn main() {
