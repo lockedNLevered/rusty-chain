@@ -8,9 +8,19 @@ struct Transaction {
 
 #[derive(Debug)]
 struct Block {
-    index: u8,
+    index: usize,
     timestamp: OffsetDateTime,
     transactions: Vec<Transaction>,
+}
+
+trait ExposeDetails {
+    fn get_index(self) -> usize;
+}
+
+impl ExposeDetails for Block {
+    fn get_index(self) -> usize {
+        self.index
+    }
 }
 #[derive(Debug)]
 struct BlockChain {
@@ -27,11 +37,13 @@ impl BlockChain {
         });
         BlockChain { chain }
     }
-
-    fn new_block(self) {}
+    fn last_block(&self) -> Option<&Block> {
+        self.chain.last()
+    }
 }
 
 fn main() {
     let chain = BlockChain::new();
+    println!("{:?}", chain.last_block());
     println! {"{:?}", chain}
 }
