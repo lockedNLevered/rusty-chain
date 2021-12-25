@@ -1,5 +1,8 @@
+use std::collections::hash_map::DefaultHasher;
+use std::hash::{Hash, Hasher};
 use time::OffsetDateTime;
 #[derive(Debug)]
+#[derive(Hash)]
 struct Transaction {
     sender: String,
     recipient: String,
@@ -7,6 +10,7 @@ struct Transaction {
 }
 
 #[derive(Debug)]
+#[derive(Hash)]
 struct Block {
     index: usize,
     timestamp: OffsetDateTime,
@@ -21,6 +25,12 @@ impl ExposeDetails for Block {
     fn get_index(self) -> usize {
         self.index
     }
+}
+
+fn calculate_hash<T: Hash>(t: &T) -> u64 {
+    let mut s = DefaultHasher::new();
+    t.hash(&mut s);
+    s.finish()
 }
 #[derive(Debug)]
 struct BlockChain {
@@ -44,6 +54,11 @@ impl BlockChain {
 
 fn main() {
     let chain = BlockChain::new();
-    println!("{:?}", chain.last_block());
+    let block = chain.last_block();
+    if let Some(block) = block {
+        println!("Hello");
+        
+        println!("{:?}", calculate_hash(&block));
+    }
     println! {"{:?}", chain}
 }
