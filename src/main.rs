@@ -3,6 +3,7 @@ use std::collections::VecDeque;
 use std::hash::{Hash, Hasher};
 use time::OffsetDateTime;
 
+#[repr(C)]
 #[derive(Debug, Hash, Clone)]
 struct Transaction {
     sender: String,
@@ -10,6 +11,7 @@ struct Transaction {
     amount: u8,
 }
 
+#[repr(C)]
 #[derive(Debug, Hash, Clone)]
 struct Block {
     index: usize,
