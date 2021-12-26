@@ -1,6 +1,8 @@
 use std::collections::hash_map::DefaultHasher;
+use std::collections::VecDeque;
 use std::hash::{Hash, Hasher};
 use time::OffsetDateTime;
+
 #[derive(Debug, Hash, Clone)]
 struct Transaction {
     sender: String,
@@ -32,9 +34,10 @@ fn calculate_hash<T: Hash>(t: &T) -> u64 {
     t.hash(&mut s);
     s.finish()
 }
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 struct BlockChain {
-    current_transactions: Vec<Transaction>,
+    //current_transactions is a temp vector queue for holding a transaction object until a new block is mined
+    current_transactions: VecDeque<Transaction>,
     chain: Vec<Block>,
 }
 
@@ -52,7 +55,7 @@ impl BlockChain {
         chain.push(genesis_block);
         BlockChain {
             chain,
-            current_transactions: Vec::new(),
+            current_transactions: VecDeque::new(),
         }
     }
     fn new_transaction(&mut self, sender: String, recipient: String, amount: u8) -> usize {
@@ -61,9 +64,23 @@ impl BlockChain {
             recipient,
             amount,
         };
-        self.current_transactions.push(transaction);
+        self.current_transactions.push_back(transaction);
         let next_block = self.last_block().clone().get_index();
         return next_block;
+    }
+
+    fn new_block(&mut self, proof: u8) {
+        let last_block = self.chain.last();
+        let block = Block {
+            index: self.chain.len(),
+            timestamp: OffsetDateTime::now_utc(),
+            transactions: Vec::from(self.current_transactions.clone()),
+            proof,
+            previous_hash: calculate_hash(&last_block),
+        };
+        //Set current transactions to a new empty queue
+        self.current_transactions = VecDeque::new();
+        self.chain.push(block);
     }
     fn last_block(&self) -> &Block {
         self.chain.last().unwrap()
@@ -72,9 +89,7 @@ impl BlockChain {
 
 fn main() {
     let mut chain = BlockChain::new();
-    let block = chain.last_block();
-    println!("{:?}", calculate_hash(&block));
     chain.new_transaction(String::from("shayne"), String::from("bob"), 5);
-    chain.new_transaction(String::from("thomas"), String::from("wayne"), 51);
+    chain.new_block(1);
     println! {"{:?}", chain}
 }
