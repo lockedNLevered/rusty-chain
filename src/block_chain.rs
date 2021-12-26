@@ -4,7 +4,7 @@ use std::hash::{Hash, Hasher};
 use time::OffsetDateTime;
 
 #[repr(C)]
-#[derive(Debug, Hash, Clone)]
+#[derive(Hash, Clone)]
 struct Transaction {
     sender: String,
     recipient: String,
@@ -12,7 +12,7 @@ struct Transaction {
 }
 //ensure compiler does not reorder struct
 #[repr(C)]
-#[derive(Debug, Hash, Clone)]
+#[derive(Hash, Clone)]
 pub struct Block {
     index: usize,
     timestamp: OffsetDateTime,
@@ -28,25 +28,26 @@ pub trait ExposeDetails {
 
 impl ExposeDetails for Block {
     fn get_index(self) -> usize {
-        self.index
+        return self.index;
     }
     fn get_proof(self) -> u8 {
-        self.proof
+        return self.proof;
     }
 }
 
 fn calculate_hash<T: Hash>(t: &T) -> u64 {
     let mut s = DefaultHasher::new();
     t.hash(&mut s);
-    s.finish()
+    return s.finish();
 }
-#[derive(Debug, Clone)]
+
+#[derive(Clone)]
 pub struct BlockChain {
     //current_transactions is a temp vector queue for holding a transaction object until a new block is mined
     current_transactions: VecDeque<Transaction>,
     chain: Vec<Block>,
 }
-
+#[allow(dead_code)]
 impl BlockChain {
     pub fn new() -> Self {
         let mut chain = Vec::new();
@@ -59,10 +60,10 @@ impl BlockChain {
             proof: 1,
         };
         chain.push(genesis_block);
-        BlockChain {
+        return BlockChain {
             chain,
             current_transactions: VecDeque::new(),
-        }
+        };
     }
     pub fn new_transaction(&mut self, sender: String, recipient: String, amount: u8) -> usize {
         let transaction = Transaction {
@@ -71,8 +72,7 @@ impl BlockChain {
             amount,
         };
         self.current_transactions.push_back(transaction);
-        let next_block = self.last_block().clone().get_index();
-        return next_block;
+        return self.last_block().clone().get_index();
     }
 
     pub fn new_block(&mut self, proof: u8) {
@@ -89,9 +89,9 @@ impl BlockChain {
         self.chain.push(block);
     }
     pub fn last_block(&self) -> &Block {
-        self.chain.last().unwrap()
+        return self.chain.last().unwrap();
     }
-    //proof requires guess that when added to previous proof and hashed, generates a digit with 2 leading 1's
+    //our proof of work algo requires a guess, that, when added to previous proof and hashed, generates a digit with 2 leading 1's
     pub fn proof_of_work(&self, last_proof: u8) -> u8 {
         let mut proof = 0;
         while self.validate_proof(last_proof, proof) == false {
@@ -100,10 +100,8 @@ impl BlockChain {
         return proof;
     }
     fn validate_proof(&self, last_proof: u8, proof: u8) -> bool {
-        println! {"{}", calculate_hash(&last_proof.clone())}
         let guess = last_proof + proof;
         let guess_hash = calculate_hash(&guess);
-        println!("{}", guess_hash);
         if &guess_hash.to_string()[..2] == "11" {
             return true;
         } else {
