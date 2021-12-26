@@ -13,8 +13,10 @@
 			init()
 				.then(() => {
 					init_panic_hook();
-					const chain = BlockChain.new();
+					const chain = new BlockChain()
 					console.log(chain);
+                    chain.new_transaction("shayne", "bob", 5)
+                    console.log(chain)
 				})
 				.catch((err) => console.log(err));
 		</script>

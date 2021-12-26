@@ -10,7 +10,6 @@ time = "0.3.5"
 wasm-bindgen = { version = "0.2"}
 console_error_panic_hook = "0.1.7"
 js-sys = "0.3.55"
-serde = "1.0.132"
 
 [lib]
 crate-type = ["cdylib"]

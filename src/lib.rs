@@ -54,6 +54,7 @@ pub struct BlockChain {
 #[allow(dead_code)]
 #[wasm_bindgen]
 impl BlockChain {
+    #[wasm_bindgen(constructor)]
     pub fn new() -> Self {
         let mut chain = Vec::new();
         //generate our initial block
