@@ -1,8 +1,13 @@
-import { SyntheticEvent, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import axios from "axios";
 import { Block } from "../../wasm_blockchain/pkg/rusty_chain";
 import "./index.css";
+
+
+
+
 const API_URL = "http://localhost:4000";
+
 function App() {
 	const [chain, setChain] = useState<Block[] | null>(null);
 	const [sender, setSender] = useState("");
@@ -16,7 +21,7 @@ function App() {
 		fetchApi();
 	}, []);
 
-	async function handleSubmit(e: SyntheticEvent<HTMLFormElement>) {
+	async function handleSubmit() {
 		const data = {
 			recipient,
 			sender,
