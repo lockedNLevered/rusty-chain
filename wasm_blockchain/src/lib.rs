@@ -6,6 +6,7 @@ use std::collections::VecDeque;
 use std::hash::{Hash, Hasher};
 use wasm_bindgen::prelude::*;
 
+//ensure compiler does not reorder struct
 #[repr(C)]
 #[derive(Hash, Clone, Serialize, Deserialize)]
 struct Transaction {

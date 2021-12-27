@@ -1,6 +1,9 @@
 import express from "express";
 import cors from "cors";
-import { BlockChain, init_panic_hook } from "../../pkg/rusty_chain";
+import {
+	BlockChain,
+	init_panic_hook,
+} from "../../wasm_blockchain/pkg/rusty_chain";
 import { Transaction } from "./types";
 
 const app = express();
@@ -17,7 +20,7 @@ app.get("/", (_, res) => {
 //Endpoint to create a new transaction -> for simplicity, this endpoint
 //also mines a new block via our proof of work algorithm
 app.post("/", (req, res) => {
-	console.log(req);
+	
 	const { sender, recipient, amount }: Transaction = req.body;
 	const newTransaction = chain.new_transaction(sender, recipient, amount);
 	const last_proof = chain.last_block().get_proof();
