@@ -1,12 +1,13 @@
 use console_error_panic_hook;
 use js_sys;
+use serde::{Deserialize, Serialize};
 use std::collections::hash_map::DefaultHasher;
 use std::collections::VecDeque;
 use std::hash::{Hash, Hasher};
 use wasm_bindgen::prelude::*;
 
 #[repr(C)]
-#[derive(Hash, Clone)]
+#[derive(Hash, Clone, Serialize, Deserialize)]
 struct Transaction {
     sender: String,
     recipient: String,
@@ -15,7 +16,7 @@ struct Transaction {
 //ensure compiler does not reorder struct
 #[repr(C)]
 #[wasm_bindgen]
-#[derive(Hash, Clone)]
+#[derive(Hash, Clone, Serialize, Deserialize)]
 pub struct Block {
     index: usize,
     timestamp: String,
@@ -23,29 +24,20 @@ pub struct Block {
     previous_hash: u64,
     proof: u8,
 }
+#[allow(dead_code)]
+#[wasm_bindgen]
 
-pub trait ExposeDetails {
-    fn get_index(self) -> usize;
-    fn get_proof(self) -> u8;
-}
-
-impl ExposeDetails for Block {
-    fn get_index(self) -> usize {
+impl Block {
+    pub fn get_index(self) -> usize {
         return self.index;
     }
-    fn get_proof(self) -> u8 {
+    pub fn get_proof(self) -> u8 {
         return self.proof;
     }
 }
 
-fn calculate_hash<T: Hash>(t: &T) -> u64 {
-    let mut s = DefaultHasher::new();
-    t.hash(&mut s);
-    return s.finish();
-}
-
 #[wasm_bindgen]
-#[derive(Clone)]
+#[derive(Serialize, Deserialize, Clone)]
 pub struct BlockChain {
     //current_transactions is a temp vector queue for holding a transaction object until a new block is mined
     current_transactions: VecDeque<Transaction>,
@@ -71,6 +63,11 @@ impl BlockChain {
             current_transactions: VecDeque::new(),
         };
     }
+    pub fn get_chain(&self) -> JsValue {
+        let chain = self.chain.clone();
+        return JsValue::from_serde(&chain).unwrap();
+    }
+
     fn build_js_date() -> String {
         return String::from(js_sys::Date::to_iso_string(&js_sys::Date::new_0()));
     }
@@ -119,6 +116,13 @@ impl BlockChain {
         }
     }
 }
+//Hash a struct
+fn calculate_hash<T: Hash>(t: &T) -> u64 {
+    let mut s = DefaultHasher::new();
+    t.hash(&mut s);
+    return s.finish();
+}
+
 //log rust panics to browser console
 #[allow(dead_code)]
 #[wasm_bindgen]
