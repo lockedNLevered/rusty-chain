@@ -74,8 +74,8 @@ impl BlockChain {
 
     pub fn new_transaction(&mut self, sender: String, recipient: String, amount: u8) -> usize {
         let transaction = Transaction {
-            sender,
-            recipient,
+            sender: sender.into(),
+            recipient: recipient.into(),
             amount,
         };
         self.current_transactions.push_back(transaction);
@@ -90,8 +90,8 @@ impl BlockChain {
             proof,
             previous_hash: calculate_hash(&last_block),
         };
-        //Set current transactions to a new empty queue
-        self.current_transactions = VecDeque::new();
+        //Remove newly set transaction from queue
+        self.current_transactions.pop_front();
         self.chain.push(block);
     }
     pub fn last_block(&self) -> Block {
