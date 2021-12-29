@@ -21,7 +21,7 @@ pub struct Block {
     index: usize,
     timestamp: String,
     transactions: Vec<Transaction>,
-    previous_hash: [u8; 32],
+    previous_hash: String,
     proof: u8,
 }
 #[allow(dead_code)]
@@ -54,10 +54,7 @@ impl BlockChain {
             index: 0,
             timestamp: BlockChain::build_js_date(),
             transactions: Vec::new(),
-            previous_hash: [
-                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                0, 0, 0, 0,
-            ],
+            previous_hash: "000000000000000".to_string(),
             proof: 1,
         };
         chain.push(genesis_block);
@@ -114,7 +111,6 @@ impl BlockChain {
         if &guess_hash[..1].to_string() == "1" {
             return true;
         } else {
-            log::info!("{:?}", &guess_hash[..1]);
             return false;
         }
     }
@@ -132,11 +128,11 @@ impl HashableObject for Block {}
 impl HashableObject for u8 {}
 
 //Hash a block with sha256
-fn hash_block(block: &Block) -> [u8; 32] {
+fn hash_block(block: &Block) -> String {
     let encoded: Vec<u8> = bincode::serialize(block).unwrap();
-    let hash = Sha256::digest(encoded);
-
-    return <[u8; 32]>::from(hash);
+    let mut hasher = Sha256::new();
+    hasher.update(encoded);
+    return format!("{:X}", hasher.finalize());
 }
 
 fn hash_field(field: &u8) -> String {
