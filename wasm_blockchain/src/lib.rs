@@ -1,11 +1,10 @@
 use console_error_panic_hook;
-use js_sys;
+use log;
 use serde::{Deserialize, Serialize};
-use sha2::digest::generic_array::{ArrayLength, GenericArray};
 use sha2::{Digest, Sha256};
 use std::collections::VecDeque;
-use std::hash::{Hash};
 use wasm_bindgen::prelude::*;
+use wasm_logger;
 //ensure compiler does not reorder struct
 #[repr(C)]
 #[derive(Clone, Serialize, Deserialize)]
@@ -49,6 +48,7 @@ impl BlockChain {
     #[wasm_bindgen(constructor)]
     pub fn new() -> Self {
         let mut chain = Vec::new();
+        wasm_logger::init(wasm_logger::Config::default());
         //generate our initial block
         let genesis_block = Block {
             index: 0,
@@ -85,13 +85,12 @@ impl BlockChain {
         return self.last_block().clone().get_index();
     }
     pub fn new_block(&mut self, proof: u8) {
-        let last_block = self.chain.last();
         let block = Block {
             index: self.chain.len(),
             timestamp: BlockChain::build_js_date(),
             transactions: Vec::from(self.current_transactions.clone()),
             proof,
-            previous_hash: hash_block(&last_block),
+            previous_hash: hash_block(&self.last_block()),
         };
         //Remove newly set transaction from queue
         self.current_transactions.pop_front();
@@ -112,9 +111,10 @@ impl BlockChain {
     fn validate_proof(&self, last_proof: u8, proof: u8) -> bool {
         let guess = last_proof + proof;
         let guess_hash = hash_field(&guess);
-        if &guess_hash[..2] == [1,1] {
+        if &guess_hash[..1].to_string() == "1" {
             return true;
         } else {
+            log::info!("{:?}", &guess_hash[..1]);
             return false;
         }
     }
@@ -127,12 +127,9 @@ pub fn init_panic_hook() {
     console_error_panic_hook::set_once();
 }
 
-
-
 pub trait HashableObject {}
 impl HashableObject for Block {}
 impl HashableObject for u8 {}
-
 
 //Hash a block with sha256
 fn hash_block(block: &Block) -> [u8; 32] {
@@ -142,9 +139,9 @@ fn hash_block(block: &Block) -> [u8; 32] {
     return <[u8; 32]>::from(hash);
 }
 
-fn hash_field(field: &u8) -> [u8; 32] {
-    let encoded: Vec<u8> = bincode::serialize(field).unwrap();
-    let hash = Sha256::digest(encoded);
-
-    return <[u8; 32]>::from(hash);
+fn hash_field(field: &u8) -> String {
+    let encoded = bincode::serialize(field).unwrap();
+    let mut hasher = Sha256::new();
+    hasher.update(encoded);
+    return format!("{:X}", hasher.finalize());
 }
