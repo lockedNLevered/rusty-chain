@@ -1,10 +1,8 @@
 use console_error_panic_hook;
-use log;
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use std::collections::VecDeque;
 use wasm_bindgen::prelude::*;
-use wasm_logger;
 //ensure compiler does not reorder struct
 #[repr(C)]
 #[derive(Clone, Serialize, Deserialize)]
@@ -48,13 +46,12 @@ impl BlockChain {
     #[wasm_bindgen(constructor)]
     pub fn new() -> Self {
         let mut chain = Vec::new();
-        wasm_logger::init(wasm_logger::Config::default());
         //generate our initial block
         let genesis_block = Block {
             index: 0,
             timestamp: BlockChain::build_js_date(),
             transactions: Vec::new(),
-            previous_hash: "000000000000000".to_string(),
+            previous_hash: "00000000000000000000000000000".to_string(),
             proof: 1,
         };
         chain.push(genesis_block);
@@ -87,7 +84,7 @@ impl BlockChain {
             timestamp: BlockChain::build_js_date(),
             transactions: Vec::from(self.current_transactions.clone()),
             proof,
-            previous_hash: hash_block(&self.last_block()),
+            previous_hash: hash_field_or_struct(&self.last_block()),
         };
         //Remove newly set transaction from queue
         self.current_transactions.pop_front();
@@ -107,7 +104,7 @@ impl BlockChain {
     }
     fn validate_proof(&self, last_proof: u8, proof: u8) -> bool {
         let guess = last_proof + proof;
-        let guess_hash = hash_field(&guess);
+        let guess_hash = hash_field_or_struct(&guess);
         if &guess_hash[..1].to_string() == "1" {
             return true;
         } else {
@@ -128,15 +125,8 @@ impl HashableObject for Block {}
 impl HashableObject for u8 {}
 
 //Hash a block with sha256
-fn hash_block(block: &Block) -> String {
+fn hash_field_or_struct<T: serde::Serialize>(block: &T) -> String {
     let encoded: Vec<u8> = bincode::serialize(block).unwrap();
-    let mut hasher = Sha256::new();
-    hasher.update(encoded);
-    return format!("{:X}", hasher.finalize());
-}
-
-fn hash_field(field: &u8) -> String {
-    let encoded = bincode::serialize(field).unwrap();
     let mut hasher = Sha256::new();
     hasher.update(encoded);
     return format!("{:X}", hasher.finalize());
