@@ -3,6 +3,7 @@
 	flex-direction: column;
 	align-items: center;
 	justify-content: center;
+	height: 100vh;
 }
 
 .form {
@@ -12,6 +13,6 @@
 }
 
 .data {
-	overflow-y: scroll;
+	overflow-y: auto;
 	max-height: 70vh;
 }

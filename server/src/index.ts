@@ -15,7 +15,6 @@ const chain = new BlockChain();
 app.use(cors());
 app.use(express.json());
 
-
 //Endpoint to the view the blockchain -> this does not persist so it will be empty on launch
 app.get("/", (_, res) => {
 	res.json(chain.get_chain());
@@ -25,8 +24,8 @@ app.get("/", (_, res) => {
 app.post("/", (req, res) => {
 	const { sender, recipient, amount }: Transaction = req.body;
 	const newTransaction = chain.new_transaction(sender, recipient, amount);
-	const proof = chain.proof_of_work(chain.last_block().get_proof());
-	chain.new_block(proof);
+	const nonce = chain.proof_of_work(chain.last_block().get_nonce());
+	chain.new_block(nonce);
 	res.status(201).json(newTransaction);
 });
 
