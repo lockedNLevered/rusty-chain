@@ -9,7 +9,7 @@ use wasm_bindgen::prelude::*;
 struct Transaction {
     sender: String,
     recipient: String,
-    amount: u8,
+    amount: u16,
 }
 //ensure compiler does not reorder struct
 #[repr(C)]
@@ -20,7 +20,7 @@ pub struct Block {
     timestamp: String,
     transactions: Vec<Transaction>,
     previous_hash: String,
-    proof: u8,
+    nonce: u8,
 }
 #[allow(dead_code)]
 #[wasm_bindgen]
@@ -28,8 +28,8 @@ impl Block {
     pub fn get_index(self) -> usize {
         return self.index;
     }
-    pub fn get_proof(self) -> u8 {
-        return self.proof;
+    pub fn get_nonce(self) -> u8 {
+        return self.nonce;
     }
 }
 
@@ -52,7 +52,7 @@ impl BlockChain {
             timestamp: BlockChain::build_js_date(),
             transactions: Vec::new(),
             previous_hash: "00000000000000000000000000000".to_string(),
-            proof: 1,
+            nonce: 0,
         };
         chain.push(genesis_block);
         return BlockChain {
@@ -69,7 +69,7 @@ impl BlockChain {
         return String::from(js_sys::Date::to_iso_string(&js_sys::Date::new_0()));
     }
 
-    pub fn new_transaction(&mut self, sender: String, recipient: String, amount: u8) -> usize {
+    pub fn new_transaction(&mut self, sender: String, recipient: String, amount: u16) -> usize {
         let transaction = Transaction {
             sender: sender.into(),
             recipient: recipient.into(),
@@ -78,13 +78,13 @@ impl BlockChain {
         self.current_transactions.push_back(transaction);
         return self.last_block().clone().get_index();
     }
-    pub fn new_block(&mut self, proof: u8) {
+    pub fn new_block(&mut self, nonce: u8) {
         let block = Block {
             index: self.chain.len(),
             timestamp: BlockChain::build_js_date(),
             transactions: Vec::from(self.current_transactions.clone()),
-            proof,
-            previous_hash: hash_field_or_struct(&self.last_block()),
+            nonce,
+            previous_hash: hash_field_or_struct(&self.chain.last()),
         };
         //Remove newly set transaction from queue
         self.current_transactions.pop_front();
@@ -94,18 +94,18 @@ impl BlockChain {
         let block_copy = self.chain.last().unwrap().clone();
         return block_copy;
     }
-    //our proof of work algo requires a guess, that, when added to previous proof and hashed, generates a digit with 2 leading 1's
-    pub fn proof_of_work(&self, last_proof: u8) -> u8 {
-        let mut proof = 0;
-        while self.validate_proof(last_proof, proof) == false {
-            proof += 1;
+    //our proof of work algo requires a guess, that, when added to previous proof and hashed, generates a digit with 2 leading 0's
+    pub fn proof_of_work(&self, last_nonce: u8) -> u8 {
+        let mut nonce = 0;
+        while self.validate_nonce(last_nonce, nonce) == false {
+            nonce += 1;
         }
-        return proof;
+        return nonce;
     }
-    fn validate_proof(&self, last_proof: u8, proof: u8) -> bool {
-        let guess = last_proof + proof;
+    fn validate_nonce(&self, last_nonce: u8, nonce: u8) -> bool {
+        let guess = last_nonce + nonce;
         let guess_hash = hash_field_or_struct(&guess);
-        if &guess_hash[..1].to_string() == "1" {
+        if &guess_hash[..1].to_string() == "0" {
             return true;
         } else {
             return false;
@@ -119,10 +119,6 @@ impl BlockChain {
 pub fn init_panic_hook() {
     console_error_panic_hook::set_once();
 }
-
-pub trait HashableObject {}
-impl HashableObject for Block {}
-impl HashableObject for u8 {}
 
 //Hash a block with sha256
 fn hash_field_or_struct<T: serde::Serialize>(block: &T) -> String {
