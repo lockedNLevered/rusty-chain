@@ -1,14 +1,14 @@
 use console_error_panic_hook;
 use js_sys;
 use serde::{Deserialize, Serialize};
-use std::collections::hash_map::DefaultHasher;
+use sha2::digest::generic_array::{ArrayLength, GenericArray};
+use sha2::{Digest, Sha256};
 use std::collections::VecDeque;
-use std::hash::{Hash, Hasher};
+use std::hash::{Hash};
 use wasm_bindgen::prelude::*;
-
 //ensure compiler does not reorder struct
 #[repr(C)]
-#[derive(Hash, Clone, Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 struct Transaction {
     sender: String,
     recipient: String,
@@ -17,17 +17,16 @@ struct Transaction {
 //ensure compiler does not reorder struct
 #[repr(C)]
 #[wasm_bindgen]
-#[derive(Hash, Clone, Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct Block {
     index: usize,
     timestamp: String,
     transactions: Vec<Transaction>,
-    previous_hash: u64,
+    previous_hash: [u8; 32],
     proof: u8,
 }
 #[allow(dead_code)]
 #[wasm_bindgen]
-
 impl Block {
     pub fn get_index(self) -> usize {
         return self.index;
@@ -55,7 +54,10 @@ impl BlockChain {
             index: 0,
             timestamp: BlockChain::build_js_date(),
             transactions: Vec::new(),
-            previous_hash: 0000000000,
+            previous_hash: [
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0,
+            ],
             proof: 1,
         };
         chain.push(genesis_block);
@@ -89,7 +91,7 @@ impl BlockChain {
             timestamp: BlockChain::build_js_date(),
             transactions: Vec::from(self.current_transactions.clone()),
             proof,
-            previous_hash: calculate_hash(&last_block),
+            previous_hash: hash_block(&last_block),
         };
         //Remove newly set transaction from queue
         self.current_transactions.pop_front();
@@ -109,19 +111,13 @@ impl BlockChain {
     }
     fn validate_proof(&self, last_proof: u8, proof: u8) -> bool {
         let guess = last_proof + proof;
-        let guess_hash = calculate_hash(&guess);
-        if &guess_hash.to_string()[..2] == "11" {
+        let guess_hash = hash_field(&guess);
+        if &guess_hash[..2] == [1,1] {
             return true;
         } else {
             return false;
         }
     }
-}
-//Hash a struct
-fn calculate_hash<T: Hash>(t: &T) -> u64 {
-    let mut s = DefaultHasher::new();
-    t.hash(&mut s);
-    return s.finish();
 }
 
 //log rust panics to browser console
@@ -129,4 +125,26 @@ fn calculate_hash<T: Hash>(t: &T) -> u64 {
 #[wasm_bindgen]
 pub fn init_panic_hook() {
     console_error_panic_hook::set_once();
+}
+
+
+
+pub trait HashableObject {}
+impl HashableObject for Block {}
+impl HashableObject for u8 {}
+
+
+//Hash a block with sha256
+fn hash_block(block: &Block) -> [u8; 32] {
+    let encoded: Vec<u8> = bincode::serialize(block).unwrap();
+    let hash = Sha256::digest(encoded);
+
+    return <[u8; 32]>::from(hash);
+}
+
+fn hash_field(field: &u8) -> [u8; 32] {
+    let encoded: Vec<u8> = bincode::serialize(field).unwrap();
+    let hash = Sha256::digest(encoded);
+
+    return <[u8; 32]>::from(hash);
 }
