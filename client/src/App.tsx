@@ -3,9 +3,6 @@ import axios from "axios";
 import { Block } from "../../wasm_blockchain/pkg/rusty_chain";
 import "./index.css";
 
-
-
-
 const API_URL = "http://localhost:4000";
 
 function App() {
