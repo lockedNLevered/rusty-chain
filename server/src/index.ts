@@ -10,10 +10,12 @@ const app = express();
 //Initialize logging of rust panics
 init_panic_hook();
 //create a new block chain on launch and seed with genesis block
-const chain = new BlockChain();
+
 //required express middlewares
 app.use(cors());
 app.use(express.json());
+
+const chain = new BlockChain();
 
 //Endpoint to the view the blockchain -> this does not persist so it will be empty on launch
 app.get("/", (_, res) => {
@@ -21,7 +23,7 @@ app.get("/", (_, res) => {
 });
 //Endpoint to create a new transaction -> for simplicity, this endpoint
 //also mines a new block via our proof of work algorithm
-app.post("/", (req, res) => {
+app.post("/transaction/new", (req, res) => {
 	const { sender, recipient, amount }: Transaction = req.body;
 	const newTransaction = chain.new_transaction(sender, recipient, amount);
 	const nonce = chain.proof_of_work(chain.last_block().get_nonce());

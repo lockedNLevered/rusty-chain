@@ -25,12 +25,10 @@ function App() {
 			amount,
 		};
 
-		const res = await axios.post(API_URL, data);
-		console.log(res);
+		await axios.post(API_URL, data);
 		return fetchApi();
 	}
 
-	console.log(chain);
 	return (
 		<div className="app">
 			<form className="form" onSubmit={handleSubmit}>
