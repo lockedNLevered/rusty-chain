@@ -1,9 +1,9 @@
 mod helpers;
 use serde::{Deserialize, Serialize};
 
+use helpers::hash_field_or_struct;
 use std::collections::VecDeque;
 use wasm_bindgen::prelude::*;
-use helpers::{hash_field_or_struct};
 //ensure compiler does not reorder struct
 #[repr(C)]
 #[derive(Clone, Serialize, Deserialize)]
@@ -113,5 +113,3 @@ impl BlockChain {
         }
     }
 }
-
-

@@ -21,9 +21,10 @@ const chain = new BlockChain();
 app.get("/", (_, res) => {
 	res.json(chain.get_chain());
 });
+
 //Endpoint to create a new transaction -> for simplicity, this endpoint
 //also mines a new block via our proof of work algorithm
-app.post("/transaction/new", (req, res) => {
+app.post("/", (req, res) => {
 	const { sender, recipient, amount }: Transaction = req.body;
 	const newTransaction = chain.new_transaction(sender, recipient, amount);
 	const nonce = chain.proof_of_work(chain.last_block().get_nonce());

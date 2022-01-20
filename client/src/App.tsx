@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { Block } from "../../wasm_blockchain/pkg/rusty_chain";
 import "./index.css";
@@ -18,7 +18,8 @@ function App() {
 		fetchApi();
 	}, []);
 
-	async function handleSubmit() {
+	async function handleSubmit(e: React.SyntheticEvent<HTMLFormElement>) {
+		e.preventDefault();
 		const data = {
 			recipient,
 			sender,
