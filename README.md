@@ -5,15 +5,13 @@ WASM/Rust Proof of Work Blockchain served throught Node.js
 
 # Compiling Web Assmebly
 
-You need Rust installed.
-
-To compile Rust into Web Assmebly:
+You need Rust installed on your computer [Install Rust](https://www.rust-lang.org/tools/install)
 
 from the root directory
 
 ``` ruby
 cd wasm_blockchain
-wasm-bindgren --target nodejs 
+wasm-bindgen --target nodejs 
 ```
 This should generate a pkg folder with WASM and JS Bindings
 
